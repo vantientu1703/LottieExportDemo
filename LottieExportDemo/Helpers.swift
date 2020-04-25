@@ -39,33 +39,29 @@ func saveToLibrary(url: URL?) {
     }
 }
 
-func append(pixelBufferAdaptor adaptor: AVAssetWriterInputPixelBufferAdaptor, with image: UIImage, at presentationTime: CMTime, success: @escaping (() -> ())) throws {
-    do {
-        if let pixelBufferPool = adaptor.pixelBufferPool {
-            let pixelBufferPointer = UnsafeMutablePointer<CVPixelBuffer?>.allocate(capacity: MemoryLayout<CVPixelBuffer?>.size)
-            let status: CVReturn = CVPixelBufferPoolCreatePixelBuffer(
-              kCFAllocatorDefault,
-              pixelBufferPool,
-              pixelBufferPointer
-            )
-            guard let pixelBuffer = pixelBufferPointer.pointee else {
-                return
-            }
-            guard status == 0 else {
-                return
-            }
-            
-            fill(pixelBuffer: pixelBuffer, with: image)
-            if adaptor.append(pixelBuffer, withPresentationTime: presentationTime) {
-                pixelBufferPointer.deinitialize(count:1)
-                success()
-            } else {
-            }
-            
-            pixelBufferPointer.deallocate()
+func append(pixelBufferAdaptor adaptor: AVAssetWriterInputPixelBufferAdaptor, with image: UIImage, at presentationTime: CMTime, success: @escaping (() -> ())) {
+    if let pixelBufferPool = adaptor.pixelBufferPool {
+        let pixelBufferPointer = UnsafeMutablePointer<CVPixelBuffer?>.allocate(capacity: MemoryLayout<CVPixelBuffer?>.size)
+        let status: CVReturn = CVPixelBufferPoolCreatePixelBuffer(
+            kCFAllocatorDefault,
+            pixelBufferPool,
+            pixelBufferPointer
+        )
+        guard let pixelBuffer = pixelBufferPointer.pointee else {
+            return
         }
-    } catch let error {
-        throw error
+        guard status == 0 else {
+            return
+        }
+        
+        fill(pixelBuffer: pixelBuffer, with: image)
+        if adaptor.append(pixelBuffer, withPresentationTime: presentationTime) {
+            pixelBufferPointer.deinitialize(count:1)
+            success()
+        } else {
+        }
+        
+        pixelBufferPointer.deallocate()
     }
 }
 
